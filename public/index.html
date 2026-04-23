@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>V3R5U5</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <div class="app">
+    <h1 class="title">
+      V3R5U5
+      <span class="reset-hitbox" onclick="resetAll()"></span>
+    </h1>
+
+    <div class="versus-container">
+      <!-- LEFT IMAGE -->
+      <img src="https://picsum.photos/200?1" onclick="vote('left')">
+
+      <!-- VS -->
+      <div class="vs">
+        <pre>                               
+                      :@#     _                
+             =@-     .@@:  :@@@@#=-             
+             -@@+    #@- @@@@&%             
+              *@@   %@% @@@*               
+               #@@ +@@ *@@=;+%@=              
+                @@ @@*  @@&*&@@@#             
+                +@@@@:       #@@*             
+                :@@@@      @@@@               
+                  &@@-   %$@@+                 
+                       -=&%. </pre>
+      </div>
+
+      <!-- RIGHT IMAGE -->
+      <img src="https://picsum.photos/200?2" onclick="vote('right')">
+    </div>
+
+    <!-- VOTE BARS -->
+    <div class="bar-container">
+      <div id="leftBar" class="bar left">50%</div>
+      <div id="rightBar" class="bar right">50%</div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat">
+      <div id="messages" class="messages"></div>
+
+      <div class="chat-input">
+        <input id="chatInput" type="text" placeholder="Message...">
+        <button onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS CONNECTION -->
+  <script src="script.js"></script>
+</body>
+</html>
