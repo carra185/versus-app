@@ -8,14 +8,19 @@
 
 <body>
   <div class="app">
-    <h1 class="title">
-      V3R5U5
-      <span class="reset-hitbox" onclick="resetAll()"></span>
-    </h1>
+
+    <!-- HEADER -->
+    <div class="header">
+      <h1 class="title">
+        V3R5U5
+        <span class="reset-hitbox" onclick="resetAll()"></span>
+      </h1>
+      <h2 id="timer">30</h2>
+    </div>
 
     <div class="versus-container">
       <!-- LEFT IMAGE -->
-      <img src="https://picsum.photos/200?1" onclick="vote('left')">
+      <img id="leftImg" src="img/2-VS.PNG" onclick="vote('left')">
 
       <!-- VS -->
       <div class="vs">
@@ -33,7 +38,7 @@
       </div>
 
       <!-- RIGHT IMAGE -->
-      <img src="https://picsum.photos/200?2" onclick="vote('right')">
+      <img id="rightImg" src="img/1-VS.JPG" onclick="vote('right')">
     </div>
 
     <!-- VOTE BARS -->
@@ -51,9 +56,9 @@
         <button onclick="sendMessage()">Send</button>
       </div>
     </div>
+
   </div>
 
-  <!-- JS CONNECTION -->
   <script src="script.js"></script>
 </body>
 </html>
