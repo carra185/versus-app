@@ -19,8 +19,12 @@
     </div>
 
     <div class="versus-container">
-      <!-- LEFT IMAGE -->
-      <img id="leftImg" src="img/2-VS.PNG" onclick="vote('left')">
+
+      <!-- LEFT IMAGE + OVERLAY -->
+      <div class="img-wrapper">
+        <img id="leftImg" src="img/2-VS.PNG" onclick="vote('left')">
+        <div id="leftOverlay" class="overlay"></div>
+      </div>
 
       <!-- VS -->
       <div class="vs">
@@ -37,8 +41,12 @@
                        -=&%. </pre>
       </div>
 
-      <!-- RIGHT IMAGE -->
-      <img id="rightImg" src="img/1-VS.JPG" onclick="vote('right')">
+      <!-- RIGHT IMAGE + OVERLAY -->
+      <div class="img-wrapper">
+        <img id="rightImg" src="img/1-VS.JPG" onclick="vote('right')">
+        <div id="rightOverlay" class="overlay"></div>
+      </div>
+
     </div>
 
     <!-- VOTE BARS -->

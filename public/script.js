@@ -1,25 +1,19 @@
-// ─────────────────────────────────────────────
-// GLOBAL STATE
-// ─────────────────────────────────────────────
+// ================= STATE =================
 let isVoting = false;
-let lastTime = null;
-let resetInFlight = false;
+let gameState = "active";
 
 
-// ─────────────────────────────────────────────
-// GENERIC FETCH HELPER
-// ─────────────────────────────────────────────
+// ================= FETCH =================
 async function fetchJSON(url, options = {}) {
   const res = await fetch(url, options);
   return res.json();
 }
 
 
-// ─────────────────────────────────────────────
-// VOTING
-// ─────────────────────────────────────────────
+// ================= VOTING =================
 async function vote(side) {
-  if (isVoting) return;
+  if (isVoting || gameState !== "active") return;
+
   isVoting = true;
 
   try {
@@ -29,16 +23,14 @@ async function vote(side) {
       body: JSON.stringify({ side })
     });
 
-    renderBars(data); // immediate UI update
+    renderBars(data);
   } finally {
     isVoting = false;
   }
 }
 
 
-// ─────────────────────────────────────────────
-// RENDER
-// ─────────────────────────────────────────────
+// ================= RENDER =================
 function renderBars(data) {
   const total = data.left_votes + data.right_votes;
   const left = total === 0 ? 50 : Math.round((data.left_votes / total) * 100);
@@ -55,11 +47,10 @@ function updateBar(id, percent) {
 }
 
 
-// ─────────────────────────────────────────────
-// DATA LOADERS
-// ─────────────────────────────────────────────
+// ================= DATA =================
 async function updateBars() {
-  if (isVoting) return;
+  if (isVoting || gameState !== "active") return;
+
   const data = await fetchJSON("/votes");
   renderBars(data);
 }
@@ -83,35 +74,49 @@ async function loadImages() {
 }
 
 
-// ─────────────────────────────────────────────
-// TIMER (SAFE RESET)
-// ─────────────────────────────────────────────
+// ================= TIMER + RESULT =================
 async function loadTimer() {
   const data = await fetchJSON("/time");
+
+  gameState = data.state || "active";
+
   const timerEl = document.getElementById("timer");
+  const leftOverlay = document.getElementById("leftOverlay");
+  const rightOverlay = document.getElementById("rightOverlay");
 
-  timerEl.innerText = data.timeLeft;
+  if (gameState === "result") {
+    timerEl.innerText = "...loading";
 
-  if (data.timeLeft === 0 && lastTime !== 0 && !resetInFlight) {
-    resetInFlight = true;
+    const result = data.result;
 
-    await fetch("/resetRound", { method: "POST" });
+    if (result) {
+      if (result.winner === "left") {
+        leftOverlay.innerText = "WINNER";
+        rightOverlay.innerText = "LOSER";
+      } else if (result.winner === "right") {
+        leftOverlay.innerText = "LOSER";
+        rightOverlay.innerText = "WINNER";
+      } else {
+        leftOverlay.innerText = "DRAW";
+        rightOverlay.innerText = "DRAW";
+      }
 
-    await Promise.all([
-      updateBars(),
-      loadImages()
-    ]);
+      leftOverlay.classList.add("show");
+      rightOverlay.classList.add("show");
+    }
 
-    resetInFlight = false;
+  } else {
+    timerEl.innerText =
+      data.timeLeft !== undefined ? data.timeLeft : "...";
+
+    // hide overlays when back to active
+    leftOverlay.classList.remove("show");
+    rightOverlay.classList.remove("show");
   }
-
-  lastTime = data.timeLeft;
 }
 
 
-// ─────────────────────────────────────────────
-// POLLING
-// ─────────────────────────────────────────────
+// ================= POLLING =================
 function startPolling() {
   setInterval(updateBars,   1500);
   setInterval(loadMessages, 1500);
@@ -120,9 +125,7 @@ function startPolling() {
 }
 
 
-// ─────────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────────
+// ================= INIT =================
 function init() {
   updateBars();
   loadMessages();
@@ -136,9 +139,7 @@ function init() {
 }
 
 
-// ─────────────────────────────────────────────
-// CHAT
-// ─────────────────────────────────────────────
+// ================= CHAT =================
 async function sendMessage() {
   const input = document.getElementById("chatInput");
   const text = input.value.trim();
@@ -154,9 +155,7 @@ async function sendMessage() {
 }
 
 
-// ─────────────────────────────────────────────
-// RESET
-// ─────────────────────────────────────────────
+// ================= RESET =================
 async function resetAll() {
   await fetch("/resetAll", { method: "POST" });
 
@@ -168,5 +167,5 @@ async function resetAll() {
 }
 
 
-// start app
+// ================= START =================
 init();
