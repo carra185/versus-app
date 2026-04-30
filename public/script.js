@@ -1,16 +1,25 @@
-// ================= STATE =================
+// === STATE ===
 let isVoting = false;
 let gameState = "active";
 
 
-// ================= FETCH =================
+// === USER COLOR ===
+function getRandomColor() {
+  const hue = Math.floor(Math.random() * 360);
+  return `hsl(${hue}, 70%, 65%)`;
+}
+
+const userColor = getRandomColor();
+
+
+// === FETCH ===
 async function fetchJSON(url, options = {}) {
   const res = await fetch(url, options);
   return res.json();
 }
 
 
-// ================= VOTING =================
+// === VOTING ===
 async function vote(side) {
   if (isVoting || gameState !== "active") return;
 
@@ -30,7 +39,7 @@ async function vote(side) {
 }
 
 
-// ================= RENDER =================
+// === RENDER ===
 function renderBars(data) {
   const total = data.left_votes + data.right_votes;
   const left = total === 0 ? 50 : Math.round((data.left_votes / total) * 100);
@@ -47,7 +56,7 @@ function updateBar(id, percent) {
 }
 
 
-// ================= DATA =================
+// === VOTE DATA ===
 async function updateBars() {
   if (isVoting || gameState !== "active") return;
 
@@ -55,18 +64,40 @@ async function updateBars() {
   renderBars(data);
 }
 
+
+// === CHAT ===
 async function loadMessages() {
   const messages = await fetchJSON("/messages");
   const container = document.getElementById("messages");
 
   container.innerHTML = "";
+
   messages.reverse().forEach(m => {
     const div = document.createElement("div");
     div.textContent = m.text;
+    div.style.color = m.color || "white";
     container.appendChild(div);
   });
+
+  container.scrollTop = container.scrollHeight;
 }
 
+async function sendMessage() {
+  const input = document.getElementById("chatInput");
+  const text = input.value.trim();
+  if (!text) return;
+
+  await fetch("/messages", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text, color: userColor })
+  });
+
+  input.value = "";
+}
+
+
+// === IMAGES ===
 async function loadImages() {
   const data = await fetchJSON("/images");
   document.getElementById("leftImg").src = data.left;
@@ -74,7 +105,7 @@ async function loadImages() {
 }
 
 
-// ================= TIMER + RESULT =================
+// === TIMER ===
 async function loadTimer() {
   const data = await fetchJSON("/time");
 
@@ -109,23 +140,22 @@ async function loadTimer() {
     timerEl.innerText =
       data.timeLeft !== undefined ? data.timeLeft : "...";
 
-    // hide overlays when back to active
     leftOverlay.classList.remove("show");
     rightOverlay.classList.remove("show");
   }
 }
 
 
-// ================= POLLING =================
+// === POLLING ===
 function startPolling() {
-  setInterval(updateBars,   1500);
+  setInterval(updateBars, 1500);
   setInterval(loadMessages, 1500);
-  setInterval(loadImages,   3000);
-  setInterval(loadTimer,    1000);
+  setInterval(loadImages, 3000);
+  setInterval(loadTimer, 1000);
 }
 
 
-// ================= INIT =================
+// === INIT ===
 function init() {
   updateBars();
   loadMessages();
@@ -139,23 +169,7 @@ function init() {
 }
 
 
-// ================= CHAT =================
-async function sendMessage() {
-  const input = document.getElementById("chatInput");
-  const text = input.value.trim();
-  if (!text) return;
-
-  await fetch("/messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ text })
-  });
-
-  input.value = "";
-}
-
-
-// ================= RESET =================
+// === RESET ===
 async function resetAll() {
   await fetch("/resetAll", { method: "POST" });
 
@@ -167,5 +181,5 @@ async function resetAll() {
 }
 
 
-// ================= START =================
+// === START ===
 init();

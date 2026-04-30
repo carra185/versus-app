@@ -1,5 +1,7 @@
+/* FONT */
 @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
+/* GLOBAL */
 * {
   box-sizing: border-box;
   font-family: 'VT323', monospace;
@@ -8,6 +10,7 @@
   color: white;
 }
 
+/* BODY */
 body {
   display: flex;
   justify-content: center;
@@ -16,16 +19,31 @@ body {
   padding: 20px;
 }
 
+/* APP */
 .app {
   width: 700px;
 }
 
+/* HEADER */
 .title {
   font-size: 48px;
   text-align: center;
   margin-bottom: 20px;
 }
 
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+#timer {
+  font-size: 24px;
+  margin-top: 5px;
+}
+
+/* VERSUS LAYOUT */
 .versus-container {
   display: flex;
   align-items: flex-start;
@@ -33,19 +51,48 @@ body {
   margin-bottom: 20px;
 }
 
-.versus-container img {
+.img-wrapper {
+  position: relative;
   width: 200px;
   height: 200px;
+}
+
+.img-wrapper img {
+  width: 100%;
+  height: 100%;
   border: 1px solid white;
-  filter: grayscale(100%);
   cursor: pointer;
   transition: transform 0.1s;
 }
 
-.versus-container img:hover {
+.img-wrapper img:hover {
   transform: scale(1.05);
 }
 
+/* OVERLAY */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+  background: rgba(0, 0, 0, 0.7);
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.overlay.show {
+  opacity: 1;
+}
+
+/* VOTE BARS */
 .bar-container {
   display: flex;
   height: 24px;
@@ -62,18 +109,37 @@ body {
   transition: width 0.3s;
 }
 
-.left { 
-  background: #000000; 
-  width: 50%; 
-  color: white; 
+.left {
+  background: #000000;
+  width: 50%;
 }
 
-.right { 
-  background: #FFFFFF; 
-  width: 50%; 
-  color: #000000; 
+.right {
+  background: #FFFFFF;
+  width: 50%;
+  color: #000000;
 }
 
+/* FLASH */
+.left.flash {
+  animation: flashGreenLeft 0.3s ease;
+}
+
+@keyframes flashGreenLeft {
+  0% { background: #00ff00; }
+  100% { background: #000000; }
+}
+
+.right.flash {
+  animation: flashGreenRight 0.3s ease;
+}
+
+@keyframes flashGreenRight {
+  0% { background: #00ff00; }
+  100% { background: #FFFFFF; }
+}
+
+/* CHAT */
 .chat {
   background: #000;
   border: 1px solid white;
@@ -96,7 +162,6 @@ body {
   flex: 1;
   font-size: 18px;
   background: #000;
-  color: white;
   border: 1px solid white;
   padding: 6px;
 }
@@ -106,10 +171,10 @@ body {
   padding: 6px 10px;
   border: 1px solid white;
   background: #000;
-  color: white;
   cursor: pointer;
 }
 
+/* RESET BUTTON */
 .reset-hitbox {
   position: absolute;
   width: 40px;
@@ -118,56 +183,26 @@ body {
   transform: translate(10px, -30px);
 }
 
-.header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin-bottom: 10px;
+/* SCROLLBAR */
+.messages::-webkit-scrollbar {
+  width: 10px;
 }
 
-#timer {
-  font-size: 24px;
-  margin-top: 5px;
+.messages::-webkit-scrollbar-track {
+  background: #000;
+  border: 1px solid white;
 }
 
-/* ================= IMAGE WRAPPER ================= */
-
-.img-wrapper {
-  position: relative;
-  width: 200px;
-  height: 200px;
+.messages::-webkit-scrollbar-thumb {
+  background: white;
 }
 
-.img-wrapper img {
-  width: 100%;
-  height: 100%;
+.messages::-webkit-scrollbar-thumb:hover {
+  background: #ccc;
 }
 
-/* ================= OVERLAY ================= */
-
-.overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 28px;
-  font-weight: bold;
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-
-  opacity: 0;
-  transition: opacity 0.2s;
-
-  z-index: 10;          /* 🔥 ensures it sits above image */
-  pointer-events: none; /* 🔥 doesn't block clicks */
-}
-
-.overlay.show {
-  opacity: 1;
+/* ASCII */
+.vs pre {
+  font-size: 10px;
+  line-height: 10px;
 }

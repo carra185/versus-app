@@ -1,3 +1,4 @@
+// === SETUP ===
 const express = require("express");
 const sqlite3 = require("sqlite3").verbose();
 const cors = require("cors");
@@ -10,7 +11,8 @@ app.use(express.static("public"));
 
 const db = new sqlite3.Database("database.db");
 
-// ================= DATABASE =================
+
+// === DATABASE ===
 db.serialize(() => {
   db.run(`
     CREATE TABLE IF NOT EXISTS votes (
@@ -35,20 +37,25 @@ db.serialize(() => {
   });
 });
 
-// ================= TIMER =================
+
+// === TIMER ===
 let roundEndTime = Date.now() + 30000;
 
-// ================= STATE =================
-let gameState = "active"; // active | result
-let resultEndTime = null;
-let resultData = null; // { winner: "left" | "right" | "draw" }
 
-// ================= IMAGES =================
+// === GAME STATE ===
+let gameState = "active";
+let resultEndTime = null;
+let resultData = null;
+
+
+// === IMAGES ===
 const allImages = [
   "img/1-VS.JPG",
   "img/2-VS.PNG",
   "img/3-VS.JPG",
-  "img/4-VS.JPG"
+  "img/4-VS.JPG",
+  "img/ai-cat.gif",
+  "img/ai-dog.gif"
 ];
 
 let currentImages = {};
@@ -61,11 +68,11 @@ function pickRandomImages() {
 
 pickRandomImages();
 
-// ================= ROUND LOOP =================
+
+// === ROUND LOOP ===
 setInterval(() => {
   const now = Date.now();
 
-  // ACTIVE → RESULT (calculate winner FIRST)
   if (gameState === "active" && now >= roundEndTime) {
     db.get("SELECT * FROM votes WHERE id = 1", (err, row) => {
       if (err) return;
@@ -80,12 +87,9 @@ setInterval(() => {
 
       gameState = "result";
       resultEndTime = Date.now() + 2000;
-
-      console.log("result phase", resultData);
     });
   }
 
-  // RESULT → RESET → ACTIVE
   if (gameState === "result" && now >= resultEndTime) {
     db.run("UPDATE votes SET left_votes = 0, right_votes = 0 WHERE id = 1");
 
@@ -95,26 +99,22 @@ setInterval(() => {
     gameState = "active";
     resultEndTime = null;
     resultData = null;
-
-    console.log("new round");
   }
+
 }, 200);
 
-// ================= ROUTES =================
 
-// votes
+// === ROUTES ===
+
+// VOTES
 app.get("/votes", (req, res) => {
   db.get("SELECT * FROM votes WHERE id = 1", (err, row) => {
     res.json(row);
   });
 });
 
-// vote
+// VOTE
 app.post("/vote", (req, res) => {
-  if (gameState !== "active") {
-    return res.status(403).json({ error: "round not active" });
-  }
-
   const { side } = req.body;
 
   const query =
@@ -122,35 +122,45 @@ app.post("/vote", (req, res) => {
       ? "UPDATE votes SET left_votes = left_votes + 1 WHERE id = 1"
       : "UPDATE votes SET right_votes = right_votes + 1 WHERE id = 1";
 
-  db.run(query, function (err) {
-    if (err) return res.status(500).json({ error: err.message });
-
+  db.run(query, () => {
     db.get("SELECT * FROM votes WHERE id = 1", (err, row) => {
-      if (err) return res.status(500).json({ error: err.message });
       res.json(row);
     });
   });
 });
 
-// messages
+// CHAT
 app.get("/messages", (req, res) => {
   db.all("SELECT * FROM messages ORDER BY id DESC LIMIT 20", (err, rows) => {
-    res.json(rows);
+    const parsed = rows.map(r => {
+      try {
+        return JSON.parse(r.text);
+      } catch {
+        return { text: r.text, color: "white" };
+      }
+    });
+
+    res.json(parsed);
   });
 });
 
 app.post("/messages", (req, res) => {
-  const { text } = req.body;
-  db.run("INSERT INTO messages (text) VALUES (?)", [text]);
+  const { text, color } = req.body;
+
+  db.run(
+    "INSERT INTO messages (text) VALUES (?)",
+    [JSON.stringify({ text, color })]
+  );
+
   res.sendStatus(200);
 });
 
-// images
+// IMAGES
 app.get("/images", (req, res) => {
   res.json(currentImages);
 });
 
-// time
+// TIME
 app.get("/time", (req, res) => {
   const now = Date.now();
 
@@ -169,7 +179,7 @@ app.get("/time", (req, res) => {
   });
 });
 
-// reset all
+// RESET
 app.post("/resetAll", (req, res) => {
   db.run("UPDATE votes SET left_votes = 0, right_votes = 0 WHERE id = 1");
   db.run("DELETE FROM messages");
@@ -184,7 +194,8 @@ app.post("/resetAll", (req, res) => {
   res.sendStatus(200);
 });
 
-// ================= START =================
+
+// === START ===
 app.listen(3000, () => {
   console.log("Server running on http://localhost:3000");
 });
