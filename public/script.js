@@ -187,6 +187,8 @@ function init() {
 async function resetAll() {
   await fetch("/resetAll", { method: "POST" });
 
+  localStorage.removeItem("voted");
+
   await Promise.all([
     updateBars(),
     loadMessages(),
