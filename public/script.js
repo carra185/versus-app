@@ -1,6 +1,7 @@
 // === STATE ===
 let isVoting = false;
 let gameState = "active";
+let lastState = "active";
 
 
 // === USER COLOR ===
@@ -23,6 +24,8 @@ async function fetchJSON(url, options = {}) {
 async function vote(side) {
   if (isVoting || gameState !== "active") return;
 
+  if (localStorage.getItem("voted") === "true") return;
+
   isVoting = true;
 
   try {
@@ -33,6 +36,9 @@ async function vote(side) {
     });
 
     renderBars(data);
+
+    localStorage.setItem("voted", "true");
+
   } finally {
     isVoting = false;
   }
@@ -115,6 +121,13 @@ async function loadTimer() {
   const leftOverlay = document.getElementById("leftOverlay");
   const rightOverlay = document.getElementById("rightOverlay");
 
+  if (lastState === "result" && gameState === "active") {
+    loadImages();
+    updateBars();
+
+    localStorage.removeItem("voted");
+  }
+
   if (gameState === "result") {
     timerEl.innerText = "...loading";
 
@@ -143,6 +156,8 @@ async function loadTimer() {
     leftOverlay.classList.remove("show");
     rightOverlay.classList.remove("show");
   }
+
+  lastState = gameState;
 }
 
 
@@ -150,7 +165,6 @@ async function loadTimer() {
 function startPolling() {
   setInterval(updateBars, 1500);
   setInterval(loadMessages, 1500);
-  setInterval(loadImages, 3000);
   setInterval(loadTimer, 1000);
 }
 
@@ -179,6 +193,22 @@ async function resetAll() {
     loadImages()
   ]);
 }
+
+
+// === AUDIO ===
+let musicStarted = false;
+
+function startMusic() {
+  if (musicStarted) return;
+
+  const audio = document.getElementById("bgMusic");
+  audio.volume = 0.5;
+  audio.play().catch(() => {});
+
+  musicStarted = true;
+}
+
+document.addEventListener("click", startMusic);
 
 
 // === START ===

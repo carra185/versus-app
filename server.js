@@ -51,11 +51,23 @@ let resultData = null;
 // === IMAGES ===
 const allImages = [
   "img/1-VS.JPG",
-  "img/2-VS.PNG",
   "img/3-VS.JPG",
   "img/4-VS.JPG",
   "img/ai-cat.gif",
-  "img/ai-dog.gif"
+  "img/ai-dog.gif",
+  "img/winnie.PNG",
+  "img/fedora.jpg",
+  "img/mky-cut.gif",
+  "img/thanos-SNL.gif",
+  "img/charles-e.c.gif",
+  "img/hog-rdr.gif",
+  "img/spider-sad.GIF",
+  "img/mc-poison.GIF",
+  "img/stp-rcsm.PNG",
+  "img/thpider.WEBP",
+  "img/man-knife.WEBP",
+  "img/mini-kong.JPG",
+  "img/sparkle.JPG"
 ];
 
 let currentImages = {};
@@ -73,6 +85,7 @@ pickRandomImages();
 setInterval(() => {
   const now = Date.now();
 
+  // === ACTIVE → RESULT ===
   if (gameState === "active" && now >= roundEndTime) {
     db.get("SELECT * FROM votes WHERE id = 1", (err, row) => {
       if (err) return;
@@ -90,10 +103,27 @@ setInterval(() => {
     });
   }
 
+  // === RESULT → RESET → ACTIVE ===
   if (gameState === "result" && now >= resultEndTime) {
     db.run("UPDATE votes SET left_votes = 0, right_votes = 0 WHERE id = 1");
 
-    pickRandomImages();
+    // === IMAGE PERSIST LOGIC ===
+    const shuffled = [...allImages].sort(() => 0.5 - Math.random());
+
+    if (resultData?.winner === "left") {
+      // keep left, replace right
+      currentImages.right = shuffled.find(img => img !== currentImages.left);
+    } 
+    else if (resultData?.winner === "right") {
+      // keep right, replace left
+      currentImages.left = shuffled.find(img => img !== currentImages.right);
+    } 
+    else {
+      // draw → replace both
+      currentImages.left = shuffled[0];
+      currentImages.right = shuffled.find(img => img !== currentImages.left);
+    }
+
     roundEndTime = Date.now() + 30000;
 
     gameState = "active";
@@ -103,17 +133,14 @@ setInterval(() => {
 
 }, 200);
 
-
-// === ROUTES ===
-
-// VOTES
+// === VOTES ===
 app.get("/votes", (req, res) => {
   db.get("SELECT * FROM votes WHERE id = 1", (err, row) => {
     res.json(row);
   });
 });
 
-// VOTE
+// === VOTE ===
 app.post("/vote", (req, res) => {
   const { side } = req.body;
 
@@ -129,7 +156,7 @@ app.post("/vote", (req, res) => {
   });
 });
 
-// CHAT
+// === CHAT ===
 app.get("/messages", (req, res) => {
   db.all("SELECT * FROM messages ORDER BY id DESC LIMIT 20", (err, rows) => {
     const parsed = rows.map(r => {
@@ -155,12 +182,12 @@ app.post("/messages", (req, res) => {
   res.sendStatus(200);
 });
 
-// IMAGES
+// === IMAGES ===
 app.get("/images", (req, res) => {
   res.json(currentImages);
 });
 
-// TIME
+// === TIME ===
 app.get("/time", (req, res) => {
   const now = Date.now();
 
@@ -179,7 +206,7 @@ app.get("/time", (req, res) => {
   });
 });
 
-// RESET
+// === RESET ===
 app.post("/resetAll", (req, res) => {
   db.run("UPDATE votes SET left_votes = 0, right_votes = 0 WHERE id = 1");
   db.run("DELETE FROM messages");
