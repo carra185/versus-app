@@ -107,19 +107,15 @@ setInterval(() => {
   if (gameState === "result" && now >= resultEndTime) {
     db.run("UPDATE votes SET left_votes = 0, right_votes = 0 WHERE id = 1");
 
-    // === IMAGE PERSIST LOGIC ===
     const shuffled = [...allImages].sort(() => 0.5 - Math.random());
 
     if (resultData?.winner === "left") {
-      // keep left, replace right
       currentImages.right = shuffled.find(img => img !== currentImages.left);
     } 
     else if (resultData?.winner === "right") {
-      // keep right, replace left
       currentImages.left = shuffled.find(img => img !== currentImages.right);
     } 
     else {
-      // draw → replace both
       currentImages.left = shuffled[0];
       currentImages.right = shuffled.find(img => img !== currentImages.left);
     }
@@ -132,6 +128,7 @@ setInterval(() => {
   }
 
 }, 200);
+
 
 // === VOTES ===
 app.get("/votes", (req, res) => {
@@ -223,6 +220,8 @@ app.post("/resetAll", (req, res) => {
 
 
 // === START ===
-app.listen(3000, () => {
-  console.log("Server running on http://localhost:3000");
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log("Server running on port " + PORT);
 });
